@@ -12,17 +12,6 @@ services:
       - postgres
       - rabbitmq
 
-  worker:
-    build: .
-    command: python worker.py
-    env_file:
-      - .env
-    volumes:
-      - ./:/code
-    depends_on:
-      - postgres
-      - rabbitmq
-
   postgres:
     image: postgres:16
     environment:
@@ -31,6 +20,16 @@ services:
       POSTGRES_PASSWORD: chat
     ports:
       - "5433:5432"
+
+  worker:
+    build: .
+    command: python worker.py
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
 
   rabbitmq:
     image: rabbitmq:3-management
